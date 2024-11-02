@@ -41,6 +41,10 @@ def get_wine_advice():
     except Exception as e:
         app.logger.error(f"Error occurred: {e}")  # Logs any error
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/")
+def home():
+    return "Welcome to Free the Cork Sommelier!"
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
