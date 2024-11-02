@@ -3,6 +3,7 @@ import logging
 from flask import Flask, request, jsonify
 from openai import OpenAI
 from dotenv import load_dotenv
+from flask_cors import CORS  # Import CORS
 
 # Load environment variables from .env file
 load_dotenv()
@@ -12,12 +13,13 @@ api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize the Flask app and OpenAI client
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 client = OpenAI(api_key=api_key)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
-@app.route('/get_wine_advice', methods=['POST'])
+@app.route('/ask', methods=['POST'])
 def get_wine_advice():
     user_input = request.json.get("query")
     app.logger.info(f"Received query: {user_input}")  # Logs the query
@@ -27,6 +29,7 @@ def get_wine_advice():
         return jsonify({"error": "No input provided"}), 400
 
     try:
+        # Generate the response from the OpenAI API
         completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -40,7 +43,7 @@ def get_wine_advice():
     
     except Exception as e:
         app.logger.error(f"Error occurred: {e}")  # Logs any error
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occurred while processing your request. Please try again later."}), 500
     
 @app.route("/")
 def home():
