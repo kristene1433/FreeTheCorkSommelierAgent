@@ -15,7 +15,10 @@ if not api_key:
 
 # Initialize the Flask app and OpenAI client
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+
+# Configure CORS to allow requests from your Shopify domain
+CORS(app, resources={r"/ask": {"origins": "https://8d1741-3.myshopify.com"}})
+
 client = OpenAI(api_key=api_key)
 
 # Set up logging
