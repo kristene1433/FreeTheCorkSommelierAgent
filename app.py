@@ -1,9 +1,9 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 import logging
-from flask import Flask, request, jsonify
 from openai import OpenAI
 from dotenv import load_dotenv
-from flask_cors import CORS  # Import CORS
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,7 +13,10 @@ api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize the Flask app and OpenAI client
 app = Flask(__name__)
-CORS(app, origins=["https://8d1741-3.myshopify.com"])  # Replace with your Shopify storefront URL
+
+# Allow CORS for both your Shopify domain and freethecork.com
+CORS(app, resources={r"/*": {"origins": ["https://8d1741-3.myshopify.com", "https://freethecork.com"]}})
+
 client = OpenAI(api_key=api_key)
 
 # Set up logging
@@ -21,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 
 @app.route('/ask', methods=['POST'])
 def get_wine_advice():
-    user_input = request.json.get("query")
+    user_input = request.json.get("question")
     app.logger.info(f"Received query: {user_input}")  # Logs the query
     
     if not user_input:
