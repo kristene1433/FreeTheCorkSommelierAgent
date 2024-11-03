@@ -15,7 +15,8 @@ api_key = os.getenv("OPENAI_API_KEY")
 app = Flask(__name__)
 
 # Allow CORS for both your Shopify domain and freethecork.com
-CORS(app, resources={r"/*": {"origins": ["https://8d1741-3.myshopify.com", "https://freethecork.com"]}})
+CORS(app, resources={r"/*": {"origins": ["https://freethecork.com", "https://www.freethecork.com", "https://8d1741-3.myshopify.com"]}})
+
 
 client = OpenAI(api_key=api_key)
 
