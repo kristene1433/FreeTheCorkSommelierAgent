@@ -19,58 +19,35 @@ client = OpenAI(api_key=api_key)
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
-@app.route('/get_wine_advice', methods=['POST'])
+@app.route('/ask', methods=['POST'])
 def get_wine_advice():
+    user_input = request.json.get("query")
+    app.logger.info(f"Received query: {user_input}")  # Logs the query
+    
+    if not user_input:
+        app.logger.error("No input provided")
+        return jsonify({"error": "No input provided"}), 400
+
     try:
-        # Retrieve the user query
-        user_input = request.json.get("query")
-        app.logger.info("Received request at /get_wine_advice")
-
-        # Check if query was provided
-        if not user_input:
-            app.logger.warning("No input provided in request")
-            return jsonify({"error": "No input provided"}), 400
-
-        # Log the user query
-        app.logger.info(f"User query: {user_input}")
-
-        # Attempt to get response from OpenAI API
-        try:
-            app.logger.info("Sending request to OpenAI API")
-            completion = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a wine expert specializing in providing wine advice and food pairing recommendations."},
-                    {"role": "user", "content": user_input}
-                ]
-            )
-            app.logger.info("Received response from OpenAI API")
-
-            # Extract advice from response
-            if 'choices' in completion and len(completion.choices) > 0:
-                advice = completion.choices[0].message.content.strip()
-                app.logger.info(f"Generated advice: {advice}")
-                return jsonify({"advice": advice})
-            else:
-                app.logger.error("No choices found in OpenAI API response")
-                return jsonify({"error": "Unexpected response format from OpenAI API"}), 500
-
-        except Exception as api_error:
-            app.logger.error(f"Error while calling OpenAI API: {api_error}")
-            return jsonify({"error": "Failed to retrieve advice from the AI service. Please try again later."}), 500
-
-    except Exception as general_error:
-        app.logger.error(f"Unexpected error in /get_wine_advice endpoint: {general_error}")
-        return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
-
+        # Generate the response from the OpenAI API
+        completion = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a wine expert specializing in providing wine advice and food pairing recommendations."},
+                {"role": "user", "content": user_input}
+            ]
+        )
+        advice = completion.choices[0].message.content.strip()
+        app.logger.info(f"Generated advice: {advice}")  # Logs the generated advice
+        return jsonify({"advice": advice})
+    
+    except Exception as e:
+        app.logger.error(f"Error occurred: {e}")  # Logs any error
+        return jsonify({"error": "An error occurred while processing your request. Please try again later."}), 500
+    
 @app.route("/")
 def home():
     return "Welcome to Free the Cork Sommelier!"
-
-# Health check endpoint to verify the server is running
-@app.route("/check", methods=["GET"])
-def check():
-    return jsonify({"status": "Server is running"}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
