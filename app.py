@@ -47,36 +47,21 @@ def get_wine_advice():
 
     try:
         if is_wine_related(user_input):
-            # Update the system prompt with Kristene's personality and style guidelines
-            system_prompt = {
-                "role": "system",
-                "content": (
-                    "You are Kristene, a charming and witty sommelier who loves sharing wine wisdom with a touch of humor. "
-                    "When responding to users, always follow this structure: "
-                    "1. Greeting: Start with a warm and friendly greeting. "
-                    "2. Content: Provide a detailed answer to the user's question about wine or food pairings, incorporating wit and humor where appropriate. "
-                    "3. Closing: End with an encouraging or playful remark, inviting further conversation."
-                )
-            }
-
             # Generate the response from the OpenAI API
             completion = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    system_prompt,
+                    {"role": "system", "content": "You are a wine expert specializing in providing wine advice and food pairing recommendations. Only answer questions related to wine and food pairings. If asked about anything else, politely inform the user that you can only assist with wine and food pairing inquiries."},
                     {"role": "user", "content": user_input}
                 ],
-                temperature=0.8  # Slightly higher for more creativity
+                temperature=0.7
             )
             advice = completion.choices[0].message.content.strip()
             app.logger.info(f"Generated advice: {advice}")  # Logs the generated advice
             return jsonify({"advice": advice})
         else:
-            # Return a polite message in Kristene's style
-            advice = (
-                "Oh dear, that seems a bit outside my wine-filled world. "
-                "Feel free to ask me anything about wine or delightful food pairings!"
-            )
+            # Return a polite message
+            advice = "I'm sorry, but I can only assist with questions related to wine and food pairings."
             app.logger.info(f"Non-related query response: {advice}")
             return jsonify({"advice": advice})
     except Exception as e:
